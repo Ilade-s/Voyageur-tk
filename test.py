@@ -1,10 +1,10 @@
 from graph_lib import Graph
 from rich import print
 
-def prim(G: list[list[int]], nstart: int) -> tuple[list[list[int]], list]:
+def prim(G: list[list[int]], nstart: int) -> tuple[list[list[int]], list, list]:
     """
     Algo PRIM, needs a starting point number and a matrix of a graph
-    Returns another matrix, with represents the tree to walkthrough the graph, as well as the list of points in order
+    Returns another matrix, with represents the tree to walkthrough the graph, as well as the path, and the list of predecessors of each node in the path
     """
     A = [nstart]
     B = [n for n in range(len(G)) if n != nstart]
@@ -27,19 +27,38 @@ def prim(G: list[list[int]], nstart: int) -> tuple[list[list[int]], list]:
     
     print('pred :', pred)
     
-    return S, A
+    return S, A, pred
+
+def upgrade_prim(start, circuit, A, pred):
+    circuit[0] = start
+    circuit[1] = start
+    for i in range(1, len(A)):
+        ii = i
+        while circuit[ii] != pred[i - 1]:
+            circuit[ii + 1] = circuit[ii]
+            ii -= 1
+        circuit[ii + 1] = circuit[ii]
+        circuit[ii] = A[i]
+    
+    return circuit
+
+def len_path(path):
+    pass
+
+
+
 
 def main():
     g = Graph()
 
     # sommets = [0, 1, 2, 3, 4, 5, 6]
 
-    g.ajouter_arete(0, 1, 2)
-    g.ajouter_arete(0, 2, 3)
-    g.ajouter_arete(0, 3, 4)
-    g.ajouter_arete(0, 4, 4)
-    g.ajouter_arete(0, 5, 3)
-    g.ajouter_arete(0, 6, 3)
+    g.ajouter_arete("a", 1, 2) # a is node 0
+    g.ajouter_arete("a", 2, 3)
+    g.ajouter_arete("a", 3, 4)
+    g.ajouter_arete("a", 4, 4)
+    g.ajouter_arete("a", 5, 3)
+    g.ajouter_arete("a", 6, 3)
 
     g.ajouter_arete(1, 2, 3)
     g.ajouter_arete(1, 3, 2)
@@ -65,11 +84,23 @@ def main():
 
     print(g.get_matrice())
 
-    (S, A) = prim(g.get_matrice(), 6)
+    (S, A, pred) = prim(g.get_matrice(), 6)
 
     print('prim matrix :', S)
 
-    print('path :', A)
+    circuit = A + [A[0]]
+
+    dict_sommets = g.get_dict_sommets()
+
+    circuit_names = [dict_sommets[n] for n in circuit]
+
+    print('path before upgrade :', circuit_names)
+
+    circuit = upgrade_prim(6, circuit, A, pred)
+
+    circuit_names = [dict_sommets[n] for n in circuit]
+
+    print('path after upgrade :', circuit_names)
 
 if __name__ == '__main__':
     main()

@@ -11,6 +11,12 @@ class Graph:
     
     def ajouter_sommet(self, sommet: str) -> None:
         self.graphe[sommet] = {}
+    
+    def get_dict_sommets(self) -> list:
+        return {
+            n: s for n, s in
+            zip(range(len(self.get_matrice())), list(self.graphe.keys()))
+        }
 
     def degre(self, sommet) -> int:
         return len(self.graphe[sommet])

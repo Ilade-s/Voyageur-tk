@@ -3,13 +3,17 @@ Interface graphique pour utilser algo PRIM dans le cadre du probleme du voyageur
 """
 from tkinter import * # GUI module
 from tkinter import ttk, messagebox as msgbox # addons for GUI
-# Frames individuelles TODO
+from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
+# Frames individuelles
+from mapFrame import MapFrame 
+from infoFrame import InfoFrame 
+
 
 __AUTHORS__ = 'Raphaël, Elisa and Grégoire'
 __VERSION__ = '0.1'
 
-X = 1000
-Y = 600
+X = 800
+Y = 640
 
 class TopLevel(Tk):
     """
@@ -23,12 +27,40 @@ class TopLevel(Tk):
         self.title(
             f"Voyageur v{__VERSION__}")
         self.geometry("{}x{}".format(x, y))
+        self.size = (x, y)
         self.__setup_frames()
+    
+    @property
+    def size(self):
+        return self._size
+    
+    @size.setter
+    def size(self, value = None):
+        #print('update size...')
+        if value:
+            self._size = value
+        else:
+            (x, y) = (self.winfo_width(), self.winfo_height())
+            self._size = (x, y)
+        #print(f'new size : {self._size}')
+
 
     def __setup_frames(self):
         """
         Place les Frames dans la grille
-        """       
+        """
+        def motion(event):
+            if event.widget.__dict__['master'] == self.mapFrame: # the map label is focused
+                x, y = event.x, event.y
+                print('{}, {}'.format(x, y))
+                self.mapFrame.show_selection((x, y))
+
+        self.mapFrame = MapFrame(self)   
+        self.infoFrame = InfoFrame(self)
+        update_map = Thread(target=self.mapFrame.resize_map) # resize image thread
+        update_map.start()
+        self.bind('<Motion>', motion)
+        #print('intial size :', self.size)
 
 def main():
     print("===============================================================")
