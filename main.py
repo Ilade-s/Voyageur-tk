@@ -28,6 +28,11 @@ class TopLevel(Tk):
             f"Voyageur v{__VERSION__}")
         self.geometry("{}x{}".format(x, y))
         self.size = (x, y)
+        self.villes = (
+            "clermond ferrand", "bordeaux", "bayonne", "toulouse", "marseille", "nice", "nantes",
+            "rennes", "paris", "lille", "dijon", "valences", "aurillac", "orleans", "reims", "starsbourg",
+            "limoges", "troyes", "le havre", "cherbourg", "brest", "niort"
+        )
         self.__setup_frames()
     
     @property
@@ -50,10 +55,10 @@ class TopLevel(Tk):
         Place les Frames dans la grille
         """
         def motion(event):
-            if event.widget.__dict__['master'] == self.mapFrame: # the map label is focused
+            if event.widget.__dict__['master'] == self.mapFrame and not event.widget['text'] in self.villes: # the map is focused
                 x, y = event.x, event.y
-                print('{}, {}'.format(x, y))
-                self.mapFrame.show_selection((x, y))
+                #print('{}, {}'.format(x, y))
+                self.mapFrame.show_selection(x, y)
 
         self.mapFrame = MapFrame(self)   
         self.infoFrame = InfoFrame(self)
