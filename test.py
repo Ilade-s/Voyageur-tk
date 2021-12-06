@@ -42,9 +42,6 @@ def upgrade_prim(start, circuit, A, pred):
     
     return circuit
 
-def len_path(path):
-    pass
-
 
 
 

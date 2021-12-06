@@ -7,6 +7,7 @@ from threading import Thread # Permet de faire tourner des fonctions en meme tem
 # Frames individuelles
 from mapFrame import MapFrame 
 from infoFrame import InfoFrame 
+from menuBar import MenuBar
 
 
 __AUTHORS__ = 'Raphaël, Elisa and Grégoire'
@@ -35,6 +36,26 @@ class TopLevel(Tk):
         )
         self.__setup_frames()
     
+    def __setup_frames(self):
+        """
+        Place les Frames dans la grille
+        """
+        def motion(event):
+            if event.widget.__dict__['master'] == self.mapFrame and not event.widget['text'] in self.villes: # the map is focused
+                x, y = event.x, event.y
+                #print('{}, {}'.format(x, y))
+                self.mapFrame.show_selection(x, y)
+
+        self.mapFrame = MapFrame(self)   
+        self.infoFrame = InfoFrame(self)
+        self.Menu = MenuBar(self)
+        self.config(menu=self.Menu)
+        update_map = Thread(target=self.mapFrame.resize_map) # resize image thread
+        update_map.setDaemon(True) # will be closed when the main thread is closed
+        update_map.start()
+        self.bind('<Motion>', motion)
+        #print('intial size :', self.size)
+    
     @property
     def size(self):
         return self._size
@@ -49,23 +70,6 @@ class TopLevel(Tk):
             self._size = (x, y)
         #print(f'new size : {self._size}')
 
-
-    def __setup_frames(self):
-        """
-        Place les Frames dans la grille
-        """
-        def motion(event):
-            if event.widget.__dict__['master'] == self.mapFrame and not event.widget['text'] in self.villes: # the map is focused
-                x, y = event.x, event.y
-                #print('{}, {}'.format(x, y))
-                self.mapFrame.show_selection(x, y)
-
-        self.mapFrame = MapFrame(self)   
-        self.infoFrame = InfoFrame(self)
-        update_map = Thread(target=self.mapFrame.resize_map) # resize image thread
-        update_map.start()
-        self.bind('<Motion>', motion)
-        #print('intial size :', self.size)
 
 def main():
     print("===============================================================")

@@ -46,13 +46,29 @@ class Graph:
             for s in self.graphe.keys()
         ]
         
-
         return mat
 
     def matrice(self) -> None:
         for l in self.get_matrice():
             print(l)
-            
+
+def mat_to_dict(matrix: list[list[int]], nodeList: list[str]) -> dict[str: dict[dict[str: int]]]:
+    """
+    converts a list of node and their matrix in a dict usable for the Graph class
+    """
+    assert len(matrix) == len(nodeList) and len(matrix[0]) == len(nodeList), "matrix doesn't correspond to slist"
+
+    return {
+        node: {nodeList[i]: w
+            for w, i in zip(wList, range(len(wList)))
+            if nodeList[i] != node
+        }
+        for wList, node in zip(matrix, nodeList)
+    }
+
+
+
+
 def main():
     graphe = Graph()
     graphe.ajouter_arete('a', 'b', 3)
