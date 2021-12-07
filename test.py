@@ -87,6 +87,8 @@ def main():
 
     circuit = A + [A[0]]
 
+    print(circuit[:-1])
+
     dict_sommets = g.get_dict_sommets()
 
     circuit_names = [dict_sommets[n] for n in circuit]

@@ -4,18 +4,20 @@ Frame principale avec l'image de la carte, ou sera ajouté le chemin à parcouri
 """
 from tkinter import *
 from tkinter import ttk
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageDraw, ImageFont
 from time import sleep
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 from prim_lib import PRIM # class to interact with the prim algorithm
+import math
 
 PATH_TO_MAP = 'assets/map.png'
 PATH_TO_BTN = 'assets/search.png'
+PATH_TO_LINE = 'assets/line.png'
 
-pos_villes = ( # format (x, y), same order as villes list
-    (602, 638), (345, 718),(284, 845),(481, 834),(749, 864),(881, 825),(277, 484),(269, 393),(544, 317),
-    (592, 127),(727, 473),(719, 709),(549, 708),(514, 416),(657, 275),(913, 344),(470, 622),
-    (660, 373),(390, 250),(258, 213),(49, 355),(342, 579)
+POS_VILLES = ( # format (x, y), same order as villes list
+    (602, 638), (340, 730),(270, 875),(481, 864),(765, 894),(905, 850),(260, 484),(259, 390),(548, 305),
+    (595, 95),(737, 473),(730, 719),(549, 725),(514, 416),(667, 255),(935, 334),(470, 627),
+    (670, 363),(385, 235),(258, 213),(49, 355),(342, 579)
 )
 
 class MapFrame(Frame):
@@ -26,19 +28,25 @@ class MapFrame(Frame):
         self.choice = None
         self.prim = PRIM()
         self._selection_widgets = {}
-        img_map = Image.open(PATH_TO_MAP)
-        self.mapImg = ImageTk.PhotoImage(img_map)
+        self._path_widgets = []
+        # =======================================
+        # IMAGES
+        # map image
+        self.mapImg = Image.open(PATH_TO_MAP)
+        self.mapImgTk = ImageTk.PhotoImage(self.mapImg)
+        # search icon for button
         img_btn = Image.open(PATH_TO_BTN)
         self.btnImg = ImageTk.PhotoImage(img_btn)
+        # =======================================
         self.__create_widgets()
         self.pack()
     
     def __create_widgets(self):
-        self.mapLabel = Label(self, text='map', image=self.mapImg)
+        self.mapLabel = Label(self, text='map', image=self.mapImgTk)
         self.mapLabel.pack()
         self.primBtn = ttk.Button(self, text='Search path...', command=self.show_path, 
             image=self.btnImg, state=DISABLED)
-        self.primBtn.place(relx=.05, rely=.65)
+        self.primBtn.place(relx=.05, rely=.6)
     
     def show_selection(self, x: int, y: int):
         def on_click(event):
@@ -54,12 +62,21 @@ class MapFrame(Frame):
                 event.widget['text'] += '\n(départ)'
                 event.widget['background'] = '#FF5858'
                 self.primBtn['state'] = NORMAL
+
+            for w in self._path_widgets: w.destroy()
+            self._path_widgets = []
+            # reset the map image
+            self.mapImg = Image.open(PATH_TO_MAP)
+            win_size = self.master.size
+            img = self.mapImg.resize(tuple(win_size))
+            self.mapImgTk = ImageTk.PhotoImage(img)
+            self.mapLabel['image'] = self.mapImgTk
             event.widget.update()
 
         width, height = self.master.size
         x_factor = 1000 / width
         y_factor = 1000 / height
-        for (xv, yv), i in zip(pos_villes, range(len(pos_villes))):
+        for (xv, yv), i in zip(POS_VILLES, range(len(POS_VILLES))):
             name = self.master.villes[i]
             if abs(xv / x_factor - x) < 50 / x_factor and abs(yv / y_factor - y) < 50 / x_factor: # close to the city 
                 if not i in self._selection_widgets.keys():
@@ -91,15 +108,36 @@ class MapFrame(Frame):
             # get the MapFrame size
             self.master.size = () # update the size
             win_size = list(self.master.size)
-            win_size[0] = win_size[0]
             if win_size != pred_size: # size changed
                 # resize the image in the available space
-                img = img.resize(tuple(win_size))
+                img = self.mapImg.resize(tuple(win_size))
                 # reset the image to update the map label
-                self.mapImg = ImageTk.PhotoImage(img)
-                self.mapLabel['image'] = self.mapImg
+                self.mapImgTk = ImageTk.PhotoImage(img)
+                self.mapLabel['image'] = self.mapImgTk
             pred_size = [*win_size]
             sleep(.1)
 
     def show_path(self):
-        pass
+        # execute the algorithm to find the path
+        self.prim.execute(self.choice)
+        self.prim.upgrade()
+        path = self.prim.npath
+        #path = self.prim.npath_upgraded # """upgraded""" path
+        # add the order to the cities
+        width, height = self.master.size
+        x_factor = 1000 / width
+        y_factor = 1000 / height
+        draw = ImageDraw.Draw(self.mapImg) # drawing object
+        # add the lines between each city
+        for D, A in zip(path, path[1:]):
+            draw.line((POS_VILLES[D], POS_VILLES[A]), 'red', 5)
+        # add the order numbers
+        for n, i in zip(path[:-1], range(len(path))):
+            fnt = ImageFont.truetype("C:/Windows/Fonts/Arial.ttf", 30)
+            draw.text(POS_VILLES[n], f'{i+1}', fill='blue', font=fnt)
+        # update the map image
+        win_size = self.master.size
+        img = self.mapImg.resize(tuple(win_size))
+        self.mapImgTk = ImageTk.PhotoImage(img)
+        self.mapLabel['image'] = self.mapImgTk
+

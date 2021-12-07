@@ -130,6 +130,15 @@ class PRIM:
             self.villes[i]
             for i in self._path_upgraded
         ]
+    
+    @property
+    def npath_upgraded(self):
+        return self._path_upgraded
+    
+    @property
+    def npath(self):
+        return self._path
+        
 
 if __name__ == '__main__':
     p = PRIM()

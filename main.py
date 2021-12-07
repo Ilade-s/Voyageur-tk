@@ -6,11 +6,9 @@ from tkinter import ttk, messagebox as msgbox # addons for GUI
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 # Frames individuelles
 from mapFrame import MapFrame 
-from menuBar import MenuBar
-
 
 __AUTHORS__ = 'Raphaël, Elisa and Grégoire'
-__VERSION__ = '0.1'
+__VERSION__ = '1.0'
 
 X = 700
 Y = 700
@@ -42,12 +40,9 @@ class TopLevel(Tk):
         def motion(event):
             if event.widget.__dict__['master'] == self.mapFrame and not event.widget['text'] in self.villes: # the map is focused
                 x, y = event.x, event.y
-                #print('{}, {}'.format(x, y))
                 self.mapFrame.show_selection(x, y)
 
         self.mapFrame = MapFrame(self)   
-        self.Menu = MenuBar(self)
-        self.config(menu=self.Menu)
         update_map = Thread(target=self.mapFrame.resize_map) # resize image thread
         update_map.setDaemon(True) # will be closed when the main thread is closed
         update_map.start()
@@ -59,14 +54,11 @@ class TopLevel(Tk):
     
     @size.setter
     def size(self, value = None):
-        #print('update size...')
         if value:
             self._size = value
         else:
             (x, y) = (self.winfo_width(), self.winfo_height())
             self._size = (x, y)
-        #print(f'new size : {self._size}')
-
 
 def main():
     print("===============================================================")
