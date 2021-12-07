@@ -8,11 +8,9 @@ from PIL import ImageTk, Image, ImageDraw, ImageFont
 from time import sleep
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 from prim_lib import PRIM # class to interact with the prim algorithm
-import math
 
 PATH_TO_MAP = 'assets/map.png'
 PATH_TO_BTN = 'assets/search.png'
-PATH_TO_LINE = 'assets/line.png'
 
 POS_VILLES = ( # format (x, y), same order as villes list
     (602, 638), (340, 730),(270, 875),(481, 864),(765, 894),(905, 850),(260, 484),(259, 390),(548, 305),
@@ -28,7 +26,6 @@ class MapFrame(Frame):
         self.choice = None
         self.prim = PRIM()
         self._selection_widgets = {}
-        self._path_widgets = []
         # =======================================
         # IMAGES
         # map image
@@ -62,9 +59,6 @@ class MapFrame(Frame):
                 event.widget['text'] += '\n(départ)'
                 event.widget['background'] = '#FF5858'
                 self.primBtn['state'] = NORMAL
-
-            for w in self._path_widgets: w.destroy()
-            self._path_widgets = []
             # reset the map image
             self.mapImg = Image.open(PATH_TO_MAP)
             win_size = self.master.size
