@@ -116,18 +116,15 @@ class MapFrame(Frame):
         self.prim.execute(self.choice)
         self.prim.upgrade()
         path = self.prim.npath
-        #path = self.prim.npath_upgraded # """upgraded""" path
+        path = self.prim.npath_upgraded # upgraded path
         # add the order to the cities
-        width, height = self.master.size
-        x_factor = 1000 / width
-        y_factor = 1000 / height
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city
         for D, A in zip(path, path[1:]):
             draw.line((POS_VILLES[D], POS_VILLES[A]), 'red', 5)
         # add the order numbers
         for n, i in zip(path[:-1], range(len(path))):
-            fnt = ImageFont.truetype("C:/Windows/Fonts/Arial.ttf", 30)
+            fnt = ImageFont.truetype("assets/arial.ttf", 30)
             draw.text(POS_VILLES[n], f'{i+1}', fill='blue', font=fnt)
         # update the map image
         win_size = self.master.size
