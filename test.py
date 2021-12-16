@@ -7,12 +7,4 @@ VILLES = (
     "limoges", "troyes", "le havre", "cherbourg", "brest", "niort"
 )
 
-p = PRIM()
-
-p.execute(0)
-
-print(p.tree_matrix)
-
-dict_graph = mat_to_dict(p.tree_matrix, VILLES)
-
-print(dict_graph)
+print(hex(2)[2:])

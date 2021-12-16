@@ -113,19 +113,25 @@ class MapFrame(Frame):
 
     def show_path(self):
         # execute the algorithm to find the path
-        self.prim.execute(self.choice)
+        self.prim.execute(self.choice, 3)
         self.prim.upgrade()
-        path = self.prim.npath
-        path = self.prim.npath_upgraded # upgraded path
+        paths = self.prim.npaths
         # add the order to the cities
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city
-        for D, A in zip(path, path[1:]):
-            draw.line((POS_VILLES[D], POS_VILLES[A]), 'red', 5)
+        for i, path in paths.items():
+            for D, A in zip(path, path[1:]):
+                draw.line((POS_VILLES[D], POS_VILLES[A]), 
+                        '#{}{}{}'.format(
+                            ('ff' if i % 4 else '00'), ('ff' if i % 1 else '00'), ('ff' if i % 2 else '00'))
+                            , 5)
         # add the order numbers
-        for n, i in zip(path[:-1], range(len(path))):
-            fnt = ImageFont.truetype("assets/arial.ttf", 30)
-            draw.text(POS_VILLES[n], f'{i+1}', fill='blue', font=fnt)
+        for i, path in paths.items():
+            for n, j in zip(path[:-1], range(len(path))):
+                fnt = ImageFont.truetype("assets/arial.ttf", 30)
+                draw.text(POS_VILLES[n], f'{j+1}', fill='#{}{}{}'.format(
+                            ('ff' if i % 1 else '00'), ('ff' if i % 2 else '00'), ('ff' if i % 4 else '00'))
+                            , font=fnt)
         # update the map image
         win_size = self.master.size
         img = self.mapImg.resize(tuple(win_size))

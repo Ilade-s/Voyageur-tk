@@ -34,6 +34,56 @@ VILLES = (
     "limoges", "troyes", "le havre", "cherbourg", "brest", "niort"
 )
 
+class Voyageur:
+    """
+    Class that represents a traveler, with his path
+
+    Attributes :
+    ------------
+        - .id : number id of the traveler
+        - .path : list of the names of the nodes, result from .execute()
+        - .pred : list of predecesors of the path nodes
+        - .tree_mat : matrix that represents the tree of the PRIM algorithm
+    """
+    def __init__(self, master, id, nstart) -> None:
+        self.master = master
+        self.id = id
+        self.nstart = nstart
+        self._A = [nstart]
+        self.pred = []
+        self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
+    
+    def add_node(self, i, j, weight=1):
+        self._A.append(j)
+        self.pred.append(i)
+        self.tree_mat[i][j] = weight
+        self.tree_mat[j][i] = weight
+    
+    def upgrade(self):
+        path = self.npath
+        path[0] = self.nstart
+        path[1] = self.nstart
+        for i in range(1, len(self._A)):
+            ii = i
+            while path[ii] != self.pred[i - 1]:
+                path[ii + 1] = path[ii]
+                ii -= 1
+            path[ii + 1] = path[ii]
+            path[ii] = self._A[i]
+        
+        self._A = path[:-1]
+    
+    @property
+    def npath(self):
+        return self._A + [self._A[0]]
+    
+    @property
+    def path(self):
+        return [
+            self.villes[i]
+            for i in self.npath
+        ]
+
 class PRIM:
     """
     Class for use of the prim algorithm
@@ -43,23 +93,19 @@ class PRIM:
         - .matrix : matrice des poids (distances)
         - .villes : liste des noms des sommets dans l'ordre (les noms de villes)
         - .nstart : nom du sommet de départ (ville)
-        - .path : list of the names of the nodes, result from .execute()
-        - .path_upgraded : same of .path, but is the result of .upgrade()
     """
 
     def __init__(self, matrix=MATRIX, villes=VILLES) -> None:
         self.matrix = matrix
         self.villes = villes
         self.executed = False
-        self._path = []
+        self._paths = []
+        self.voyageurs = []
     
-    def execute(self, nstart: int) -> tuple[list[list[int]], list, list]:
+    def execute(self, nstart: int, nvoyageurs=1):
         """
-        Executes the prim algorithm for the specified starting point (its index) :
-            - The matrix of the tree will be stocked in .tree_matrix
-            - The index path will be stocked in ._path
-            - The list of predecessors will be stocked in .pred
-        
+        Executes the prim algorithm for the specified starting point (its index)
+
         PARAMETER :
         -----------
             - nstart : int
@@ -72,30 +118,20 @@ class PRIM:
         self.executed = True
         G = self.matrix
         self.nstart = nstart
-
-        A = [nstart]
+        self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
         B = [n for n in range(len(G)) if n != nstart]
-        S = [[0 for _ in range(len(G))] for __ in range(len(G))]
-        pred = []
-
         while B:
-            min_weight = ""
-            for i in A:
-                for j in B:
-                    if G[i][j] and (not min_weight or G[i][j] < min_weight):
-                        min_weight = G[i][j]
-                        j_min, i_min = j, i
-
-            A.append(j_min)
-            B.remove(j_min)
-            pred.append(i_min)
-            S[i_min][j_min] = min_weight
-            S[j_min][i_min] = min_weight
-
-        self._A = A 
-        self._path = [*A] + [nstart]
-        self.pred = [*pred]
-        self.tree_matrix = [*S] 
+            for voyageur in self.voyageurs:
+                if not B:
+                    break
+                min_weight = ""
+                for i in voyageur._A:
+                    for j in B:
+                        if G[i][j] and (not min_weight or G[i][j] < min_weight):
+                            min_weight = G[i][j]
+                            j_min, i_min = j, i
+                voyageur.add_node(i_min, j_min, min_weight)
+                B.remove(j_min)
     
     def upgrade(self):
         """
@@ -103,51 +139,34 @@ class PRIM:
         The newfound path will be stocked in .path_upgraded
         """
         assert self.executed, "please use .execute() before attempting to upgrade the result"
-        path = [*self._path]
-
-        path[0] = self.nstart
-        path[1] = self.nstart
-        for i in range(1, len(self._A)):
-            ii = i
-            while path[ii] != self.pred[i - 1]:
-                path[ii + 1] = path[ii]
-                ii -= 1
-            path[ii + 1] = path[ii]
-            path[ii] = self._A[i]
-        
-        self._path_upgraded = [*path]
+        for voyageur in self.voyageurs:
+            voyageur.upgrade()
     
     @property
-    def path(self):
-        return [
-            self.villes[i]
-            for i in self._path
-        ]
-        
-    @property
-    def path_upgraded(self):
-        return [
-            self.villes[i]
-            for i in self._path_upgraded
-        ]
+    def paths(self):
+        return {
+            v.id: v.path 
+            for v in self.voyageurs
+        }
     
     @property
-    def npath_upgraded(self):
-        return self._path_upgraded
-    
-    @property
-    def npath(self):
-        return self._path
+    def npaths(self):
+        return {
+            v.id: v.npath 
+            for v in self.voyageurs
+        }
         
 
 if __name__ == '__main__':
     p = PRIM()
 
-    p.execute(0)
+    p.execute(0, nvoyageurs=2)
 
-    print(p.path)
+    print(p.npaths)
 
     p.upgrade()
 
-    print(p.path_upgraded)
+    print(p.npaths)
+
+
 
