@@ -51,9 +51,11 @@ class Voyageur:
         self.nstart = nstart
         self._A = [nstart]
         self.pred = []
+        self.position = nstart
         self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
     
     def add_node(self, i, j, weight=1):
+        self.position = j
         self._A.append(j)
         self.pred.append(i)
         self.tree_mat[i][j] = weight
@@ -83,6 +85,10 @@ class Voyageur:
             self.villes[i]
             for i in self.npath
         ]
+    
+    @property
+    def len_path(self):
+        return sum([sum(line) for line in self.tree_mat])
 
 class PRIM:
     """
@@ -121,17 +127,23 @@ class PRIM:
         self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
         B = [n for n in range(len(G)) if n != nstart]
         while B:
-            for voyageur in self.voyageurs:
+            moved = [False for _ in range(len(self.voyageurs))]
+            for voyageur, im in zip(self.voyageurs, range(len(self.voyageurs))):
                 if not B:
                     break
-                min_weight = ""
+                min_weight = max([max(line) for line in G]) + 1
+                changed = False
                 for i in voyageur._A:
                     for j in B:
-                        if G[i][j] and (not min_weight or G[i][j] < min_weight):
-                            min_weight = G[i][j]
-                            j_min, i_min = j, i
-                voyageur.add_node(i_min, j_min, min_weight)
-                B.remove(j_min)
+                        if G[i][j] and G[i][j] < min_weight:
+                            if G[voyageur.position][j] == min([G[v.position][j] for v, ii in zip(self.voyageurs, range(len(self.voyageurs))) if not moved[ii]]):
+                                min_weight = G[i][j]
+                                j_min, i_min = j, i
+                                changed = True
+                if changed:
+                    moved[im] = True
+                    voyageur.add_node(i_min, j_min, min_weight)
+                    B.remove(j_min)
     
     def upgrade(self):
         """
@@ -155,6 +167,10 @@ class PRIM:
             v.id: v.npath 
             for v in self.voyageurs
         }
+
+    @property
+    def total_len(self):
+        return sum([v.len_path for v in self.voyageurs])
         
 
 if __name__ == '__main__':
