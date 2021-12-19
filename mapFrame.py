@@ -8,6 +8,7 @@ from PIL import ImageTk, Image, ImageDraw, ImageFont
 from time import sleep
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 from prim_lib import PRIM # class to interact with the prim algorithm
+from random import randrange
 
 PATH_TO_MAP = 'assets/map.png'
 PATH_TO_BTN = 'assets/search.png'
@@ -44,6 +45,11 @@ class MapFrame(Frame):
         self.primBtn = ttk.Button(self, text='Search path...', command=self.show_path, 
             image=self.btnImg, state=DISABLED)
         self.primBtn.place(relx=.05, rely=.6)
+        self.scale_voyageur = ttk.Spinbox(self, width=5, background=self["background"], 
+                                from_=1, to=len(POS_VILLES), increment=1.0, font=20)
+        self.scale_voyageur.set(1)
+        self.scale_voyageur.place(relx=.05, rely=.75)
+
     
     def show_selection(self, x: int, y: int):
         def on_click(event):
@@ -113,22 +119,31 @@ class MapFrame(Frame):
 
     def show_path(self):
         # execute the algorithm to find the path
-        self.prim.execute(self.choice)
+        self.prim.execute(self.choice, int(self.scale_voyageur.get()))
         self.prim.upgrade()
-        path = self.prim.npath
-        path = self.prim.npath_upgraded # upgraded path
+        paths = self.prim.npaths
         # add the order to the cities
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city
-        for D, A in zip(path, path[1:]):
-            draw.line((POS_VILLES[D], POS_VILLES[A]), 'red', 5)
+        for _, path in paths.items():
+            if len(paths) != 1: # multiple paths
+                color = '#{}{}{}'.format(*[
+                            hex(randrange(0, 256))[2:].zfill(2)
+                            for _ in range(3)])
+            else:
+                color = '#000000'
+            for D, A in zip(path, path[1:]):
+                draw.line((POS_VILLES[D], POS_VILLES[A]), color, 5)
         # add the order numbers
-        for n, i in zip(path[:-1], range(len(path))):
-            fnt = ImageFont.truetype("assets/arial.ttf", 30)
-            draw.text(POS_VILLES[n], f'{i+1}', fill='blue', font=fnt)
+        for _, path in paths.items():
+            color = '#000000'
+            for n, j in zip(path[:-1], range(len(path))):
+                fnt = ImageFont.truetype("assets/arial.ttf", 30)
+                draw.text(POS_VILLES[n], f'{j+1}', fill=color, font=fnt)
         # update the map image
         win_size = self.master.size
         img = self.mapImg.resize(tuple(win_size))
         self.mapImgTk = ImageTk.PhotoImage(img)
         self.mapLabel['image'] = self.mapImgTk
+        self.primBtn['state'] = DISABLED
 

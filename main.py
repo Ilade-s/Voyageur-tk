@@ -8,7 +8,7 @@ from threading import Thread # Permet de faire tourner des fonctions en meme tem
 from mapFrame import MapFrame 
 
 __AUTHORS__ = 'Raphaël, Elisa and Grégoire'
-__VERSION__ = '1.0'
+__VERSION__ = '1.1'
 
 X = 700
 Y = 700
