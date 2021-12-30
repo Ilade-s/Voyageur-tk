@@ -25,6 +25,7 @@ class MapFrame(Frame):
         super().__init__(master)
         self.master = master
         self.choice = None
+        self.path_showed = False
         self.prim = PRIM()
         self._selection_widgets = {}
         # =======================================
@@ -40,16 +41,28 @@ class MapFrame(Frame):
         self.pack()
     
     def __create_widgets(self):
+        def scale_changed():
+            if self.path_showed:
+                self.__reset_image()
+                self.show_path()
+
         self.mapLabel = Label(self, text='map', image=self.mapImgTk)
         self.mapLabel.pack()
         self.primBtn = ttk.Button(self, text='Search path...', command=self.show_path, 
             image=self.btnImg, state=DISABLED)
         self.primBtn.place(relx=.05, rely=.6)
         self.scale_voyageur = ttk.Spinbox(self, width=5, background=self["background"], 
-                                from_=1, to=len(POS_VILLES), increment=1.0, font=20)
+                                from_=1, to=len(POS_VILLES), increment=1.0, font=20, command=scale_changed)
         self.scale_voyageur.set(1)
         self.scale_voyageur.place(relx=.05, rely=.75)
 
+    def __reset_image(self):
+        self.mapImg = Image.open(PATH_TO_MAP)
+        win_size = self.master.size
+        img = self.mapImg.resize(tuple(win_size))
+        self.mapImgTk = ImageTk.PhotoImage(img)
+        self.mapLabel['image'] = self.mapImgTk
+        self.path_showed = False
     
     def show_selection(self, x: int, y: int):
         def on_click(event):
@@ -66,11 +79,7 @@ class MapFrame(Frame):
                 event.widget['background'] = '#FF5858'
                 self.primBtn['state'] = NORMAL
             # reset the map image
-            self.mapImg = Image.open(PATH_TO_MAP)
-            win_size = self.master.size
-            img = self.mapImg.resize(tuple(win_size))
-            self.mapImgTk = ImageTk.PhotoImage(img)
-            self.mapLabel['image'] = self.mapImgTk
+            self.__reset_image()
             event.widget.update()
 
         width, height = self.master.size
@@ -144,4 +153,6 @@ class MapFrame(Frame):
         self.mapImgTk = ImageTk.PhotoImage(img)
         self.mapLabel['image'] = self.mapImgTk
         self.primBtn['state'] = DISABLED
+        self.path_showed = True
+
 

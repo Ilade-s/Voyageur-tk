@@ -171,6 +171,10 @@ class PRIM:
     @property
     def total_len(self):
         return sum([v.len_path for v in self.voyageurs])
+    
+    @property 
+    def len_max(self):
+        return max([v.len_path for v in self.voyageurs])
         
 
 if __name__ == '__main__':
