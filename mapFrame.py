@@ -124,21 +124,19 @@ class MapFrame(Frame):
         paths = self.prim.npaths
         # add the order to the cities
         draw = ImageDraw.Draw(self.mapImg) # drawing object
-        # add the lines between each city
+        # add the lines between each city and the order numbers
         for _, path in paths.items():
-            if len(paths) != 1: # multiple paths
+            if len(paths) > 1: # multiple paths
                 color = '#{}{}{}'.format(*[
-                            hex(randrange(0, 256))[2:].zfill(2)
+                            hex(randrange(0, 200))[2:].zfill(2)
                             for _ in range(3)])
             else:
                 color = '#000000'
             for D, A in zip(path, path[1:]):
                 draw.line((POS_VILLES[D], POS_VILLES[A]), color, 5)
-        # add the order numbers
-        for _, path in paths.items():
-            color = '#000000'
             for n, j in zip(path[:-1], range(len(path))):
                 fnt = ImageFont.truetype("assets/arial.ttf", 30)
+                draw.rectangle((POS_VILLES[n], tuple([pos + 30 for pos in POS_VILLES[n]])), fill='white')
                 draw.text(POS_VILLES[n], f'{j+1}', fill=color, font=fnt)
         # update the map image
         win_size = self.master.size
