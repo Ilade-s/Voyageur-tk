@@ -8,7 +8,6 @@ from PIL import ImageTk, Image, ImageDraw, ImageFont
 from time import sleep
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 from prim_lib import PRIM # class to interact with the prim algorithm
-from random import randrange
 
 PATH_TO_MAP = 'assets/map.png'
 PATH_TO_BTN = 'assets/search.png'
@@ -134,11 +133,9 @@ class MapFrame(Frame):
         # add the order to the cities
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city and the order numbers
-        for _, path in paths.items():
+        for i, path in paths.items():
             if len(paths) > 1: # multiple paths
-                color = '#{}{}{}'.format(*[
-                            hex(randrange(0, 200))[2:].zfill(2)
-                            for _ in range(3)])
+                color = self.prim.voyageurs[i].color
             else:
                 color = '#000000'
             for D, A in zip(path, path[1:]):
@@ -146,7 +143,7 @@ class MapFrame(Frame):
             for n, j in zip(path[:-1], range(len(path))):
                 fnt = ImageFont.truetype("assets/arial.ttf", 30)
                 draw.rectangle((POS_VILLES[n], tuple([pos + 30 for pos in POS_VILLES[n]])), fill='white')
-                draw.text(POS_VILLES[n], f'{j+1}', fill=color, font=fnt)
+                draw.text(POS_VILLES[n], f'{j}', fill=color, font=fnt)
         # update the map image
         win_size = self.master.size
         img = self.mapImg.resize(tuple(win_size))

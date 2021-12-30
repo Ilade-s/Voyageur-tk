@@ -2,6 +2,7 @@
 Class with will be used as an API for the PRIM algorithm and upgrade
 """
 from rich import print
+from random import randrange
 
 MATRIX = [ # matrice des distances
     [0,376,555,377,475,632,536,594,424,639,334,263,157,300,558,630,230,428,593,716,822,402],
@@ -47,13 +48,19 @@ class Voyageur:
     """
     def __init__(self, master, id, nstart) -> None:
         self.master = master
+        self.color = '#{}{}{}'.format(*[
+                    hex(randrange(0, 200))[2:].zfill(2)
+                    for _ in range(3)])
         self.id = id
+        self.reset_vars(nstart)
+        self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
+    
+    def reset_vars(self, nstart):
         self.nstart = nstart
         self._A = [nstart]
         self.pred = []
         self.position = nstart
-        self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
-    
+
     def add_node(self, i, j, weight=1):
         self.position = j
         self._A.append(j)
@@ -124,11 +131,21 @@ class PRIM:
         self.executed = True
         G = self.matrix
         self.nstart = nstart
-        self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
         B = [n for n in range(len(G)) if n != nstart]
+        # modify or create travelers list *if necessary* (to keep the same colors if possible)
+        if not self.voyageurs:
+            self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
+        else:
+            for v in self.voyageurs:
+                v.reset_vars(nstart)
+            pre_len = len(self.voyageurs)
+            if nvoyageurs > pre_len:
+                self.voyageurs += [Voyageur(self, pre_len + i, nstart) for i in range(nvoyageurs - pre_len)]
+        # path loop        
+        voyageurs = self.voyageurs[:nvoyageurs]
         while B:
-            moved = [False for _ in range(len(self.voyageurs))]
-            for voyageur, im in zip(self.voyageurs, range(len(self.voyageurs))):
+            moved = [False for _ in range(len(voyageurs))]
+            for voyageur, im in zip(voyageurs, range(len(voyageurs))):
                 if not B:
                     break
                 min_weight = max([max(line) for line in G]) + 1
@@ -136,7 +153,7 @@ class PRIM:
                 for i in voyageur._A:
                     for j in B:
                         if G[i][j] and G[i][j] < min_weight:
-                            if G[voyageur.position][j] == min([G[v.position][j] for v, ii in zip(self.voyageurs, range(len(self.voyageurs))) if not moved[ii]]):
+                            if G[voyageur.position][j] == min([G[v.position][j] for v, ii in zip(voyageurs, range(len(voyageurs))) if not moved[ii]]):
                                 min_weight = G[i][j]
                                 j_min, i_min = j, i
                                 changed = True
@@ -159,6 +176,7 @@ class PRIM:
         return {
             v.id: v.path 
             for v in self.voyageurs
+            if v.pred
         }
     
     @property
@@ -166,6 +184,7 @@ class PRIM:
         return {
             v.id: v.npath 
             for v in self.voyageurs
+            if v.pred
         }
 
     @property
