@@ -1,13 +1,12 @@
 """
-TODO
-Frame principale avec l'image de la carte, ou sera ajouté le chemin à parcourir
+Frame principale avec l'image de la carte, où sera ajouté le chemin à parcourir
 """
-from random import randrange
-from tkinter import *
-from tkinter import ttk
-from PIL import ImageTk, Image, ImageDraw, ImageFont
-from time import sleep
-from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
+from random import randrange # création couleurs aléatoires
+from tkinter import * # GUI
+from tkinter import ttk # better/other widgets
+from PIL import ImageTk, Image, ImageDraw, ImageFont # image handling
+from time import sleep # used in threads to wait
+from threading import Thread # multithreading (auto resizing and delayed destroying of widgets)
 from prim_lib import PRIM # class to interact with the prim algorithm
 
 PATH_TO_MAP = 'assets/map.png'
