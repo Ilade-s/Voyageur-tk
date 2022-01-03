@@ -27,13 +27,19 @@ class MapFrame(Frame):
         self.choice = None
         self.path_showed = False
         self.prim = PRIM()
-        self.__path_colors = {0:"#000000"}
-        self._selection_widgets = {}
+        """Interface with the prim library"""
+        self.__path_colors = {0:"#000000"} 
+        """List of the colors for path rendering (path 0 is black)"""
+        self.__selection_widgets = {} 
+        """Dictionary which contains the widgets for the names, and eventually a thread to destroy them (after losing focus)\n 
+        Format is : dict[cityIndex: int, list[Widget, () || Thread]]"""
         # =======================================
         # IMAGES
         # map image
         self.mapImg = Image.open(PATH_TO_MAP)
+        """Pillow object for map image (can be resized)"""
         self.mapImgTk = ImageTk.PhotoImage(self.mapImg)
+        """Tkinter object for map image (cannot be resized)"""
         # search icon for button
         img_btn = Image.open(PATH_TO_BTN)
         self.btnImg = ImageTk.PhotoImage(img_btn)
@@ -66,6 +72,8 @@ class MapFrame(Frame):
         self.path_showed = False
     
     def show_selection(self, x: int, y: int):
+        """Func called by a Motion event sent by Tk window.\n
+        Renders the widgets for cities close to the mouse cursor, that can be clicked to chose it as the starting city"""
         def on_click(event):
             name = event.widget['text'].split('\n')[0]
             index_ville = self.master.villes.index(name)
@@ -89,29 +97,33 @@ class MapFrame(Frame):
         for (xv, yv), i in zip(POS_VILLES, range(len(POS_VILLES))):
             name = self.master.villes[i]
             if abs(xv / x_factor - x) < 50 / x_factor and abs(yv / y_factor - y) < 50 / x_factor: # close to the city 
-                if not i in self._selection_widgets.keys():
+                if not i in self.__selection_widgets.keys():
                     w = Label(self, text=name, background='#A8B8FF', font=('Arial', int(10 + 6 / x_factor)), name=name)
                     w.bind('<1>', on_click)
                     w.place(x=xv / x_factor - 5 * len(name), y=yv / y_factor)
-                    self._selection_widgets[i] = [w, ()]
+                    self.__selection_widgets[i] = [w, ()]
             else: 
-                if i in self._selection_widgets.keys():
-                    if not self._selection_widgets[i][1]: # there is no active remove thread for this widget
+                if i in self.__selection_widgets.keys():
+                    if not self.__selection_widgets[i][1]: # there is no active remove thread for this widget
                         remove_thread = Thread(target=self.__remove_name_widget, args=(i,))
                         remove_thread.setDaemon(True) # to prevent error when closing main program
                         remove_thread.start()
-                        self._selection_widgets[i][1] = remove_thread                   
+                        self.__selection_widgets[i][1] = remove_thread                   
     
     def __remove_name_widget(self, i):
+        """Thread created when a widget *looses focus* (isn't close to mouse cursor)\n
+        Destroy it if it isn't the start choice, after .5 seconds"""
         sleep(.5)
-        name = self._selection_widgets[i][0]['text'].split('\n')[0]
+        name = self.__selection_widgets[i][0]['text'].split('\n')[0]
         index_ville = self.master.villes.index(name)
         while self.choice == index_ville:
             sleep(.5)
-        self._selection_widgets[i][0].destroy()
-        self._selection_widgets.pop(i)
+        self.__selection_widgets[i][0].destroy()
+        self.__selection_widgets.pop(i)
 
     def resize_map(self):
+        """Used in an external thread, each .1 seconds, checks if the window size changed.\n
+        If yes, resize the map to fit in the new size"""
         pred_size = []
         while 1:
             img = Image.open(PATH_TO_MAP)
@@ -128,6 +140,8 @@ class MapFrame(Frame):
             sleep(.1)
 
     def show_path(self):
+        """Func called by the search button or when the scale is activated and a path is already shown.\n
+        Renders the path(s) of each traveler(s), with colored line between cities and numeric order"""
         # execute the algorithm to find the path
         self.prim.execute(self.choice, int(self.scale_voyageur.get()))
         self.prim.upgrade()
