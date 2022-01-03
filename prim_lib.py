@@ -41,11 +41,13 @@ class Voyageur:
     Attributes :
     ------------
         - .id : number id of the traveler
-        - .path : list of the names of the nodes, result from .execute()
+        - .path, .npath : respectively, list of the names and indexes of the nodes, results from PRIM.execute()
         - .pred : list of predecesors of the path nodes
         - .tree_mat : matrix that represents the tree of the PRIM algorithm
+        - .position : last position of the traveler (used within PRIM.execute() func)
+        - .len_path : length of the total travel (sum of individual travels between cities)
     """
-    def __init__(self, master, id, nstart) -> None:
+    def __init__(self, master, id: int, nstart: int) -> None:
         self.master = master
         self.id = id
         self.nstart = nstart
@@ -54,14 +56,31 @@ class Voyageur:
         self.position = nstart
         self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
 
-    def add_node(self, i, j, weight=1):
+    def add_node(self, i: int, j: int, weight=1) -> None:
+        """
+        Adds a node in the path and in the tree matrix, with its given weight/length
+
+        PARAMETERS :
+        ------------
+            - i, j : int, int
+                - coordinates of the node in PRIM.matrix, which are the two indexes of the cities
+            - weight : int
+                - length of the path between the two cities with indexes i and j 
+        
+        RETURN :
+        -----------
+            - None
+        """
         self.position = j
         self._A.append(j)
         self.pred.append(i)
         self.tree_mat[i][j] = weight
         self.tree_mat[j][i] = weight
     
-    def upgrade(self):
+    def upgrade(self) -> None:
+        """
+        Algorithm used on the path given by .execute() to upgrade it
+        """
         path = self.npath
         path[0] = self.nstart
         path[1] = self.nstart
@@ -99,6 +118,7 @@ class PRIM:
         - .matrix : matrice des poids (distances)
         - .villes : liste des noms des sommets dans l'ordre (les noms de villes)
         - .nstart : nom du sommet de départ (ville)
+        - .paths, .npaths : dictionaries containing, respectively, list names and indexes of the cities of each traveler (key is traveler.id) 
     """
 
     def __init__(self, matrix=MATRIX, villes=VILLES) -> None:
@@ -148,16 +168,14 @@ class PRIM:
                     B.remove(j_min)
     
     def upgrade(self):
-        """
-        Upgrades the result of the prim algorithm (of the path)
-        The newfound path will be stocked in .path_upgraded
-        """
+        """Upgrades the result of .execute() (the paths)"""
         assert self.executed, "please use .execute() before attempting to upgrade the result"
         for voyageur in self.voyageurs:
             voyageur.upgrade()
     
     @property
     def paths(self):
+        """Dict of the paths, as lists of the names of the cities, with traveler.id as keys"""
         return {
             v.id: v.path 
             for v in self.voyageurs
@@ -166,6 +184,7 @@ class PRIM:
     
     @property
     def npaths(self):
+        """Dict of the paths, as lists of indexes of the cities, with traveler.id as keys"""
         return {
             v.id: v.npath 
             for v in self.voyageurs
