@@ -2,7 +2,6 @@
 Class with will be used as an API for the PRIM algorithm and upgrade
 """
 from rich import print
-from random import randrange
 
 MATRIX = [ # matrice des distances
     [0,376,555,377,475,632,536,594,424,639,334,263,157,300,558,630,230,428,593,716,822,402],
@@ -126,7 +125,7 @@ class PRIM:
         G = self.matrix
         self.nstart = nstart
         B = [n for n in range(len(G)) if n != nstart]
-        # modify or create travelers list *if necessary* (to keep the same colors if possible)
+        # create travelers list
         self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
         voyageurs = self.voyageurs
         while B:
