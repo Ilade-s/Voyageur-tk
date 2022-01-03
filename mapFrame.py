@@ -2,6 +2,7 @@
 TODO
 Frame principale avec l'image de la carte, ou sera ajouté le chemin à parcourir
 """
+from random import randrange
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image, ImageDraw, ImageFont
@@ -26,6 +27,7 @@ class MapFrame(Frame):
         self.choice = None
         self.path_showed = False
         self.prim = PRIM()
+        self.__path_colors = {0:"#000000"}
         self._selection_widgets = {}
         # =======================================
         # IMAGES
@@ -134,10 +136,14 @@ class MapFrame(Frame):
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city and the order numbers
         for i, path in paths.items():
-            if len(paths) > 1: # multiple paths
-                color = self.prim.voyageurs[i].color
+            if i in self.__path_colors.keys():
+                color = self.__path_colors[i]
             else:
-                color = '#000000'
+                color = '#{}{}{}'.format(*[
+                    hex(randrange(0, 200))[2:].zfill(2)
+                    for _ in range(3)])
+                self.__path_colors[i] = color
+
             for D, A in zip(path, path[1:]):
                 draw.line((POS_VILLES[D], POS_VILLES[A]), color, 5)
             for n, j in zip(path[:-1], range(len(path))):

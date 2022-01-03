@@ -48,18 +48,12 @@ class Voyageur:
     """
     def __init__(self, master, id, nstart) -> None:
         self.master = master
-        self.color = '#{}{}{}'.format(*[
-                    hex(randrange(0, 200))[2:].zfill(2)
-                    for _ in range(3)])
         self.id = id
-        self.reset_vars(nstart)
-        self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
-    
-    def reset_vars(self, nstart):
         self.nstart = nstart
         self._A = [nstart]
         self.pred = []
         self.position = nstart
+        self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
 
     def add_node(self, i, j, weight=1):
         self.position = j
@@ -133,16 +127,8 @@ class PRIM:
         self.nstart = nstart
         B = [n for n in range(len(G)) if n != nstart]
         # modify or create travelers list *if necessary* (to keep the same colors if possible)
-        if not self.voyageurs:
-            self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
-        else:
-            for v in self.voyageurs:
-                v.reset_vars(nstart)
-            pre_len = len(self.voyageurs)
-            if nvoyageurs > pre_len:
-                self.voyageurs += [Voyageur(self, pre_len + i, nstart) for i in range(nvoyageurs - pre_len)]
-        # path loop        
-        voyageurs = self.voyageurs[:nvoyageurs]
+        self.voyageurs = [Voyageur(self, i, nstart) for i in range(nvoyageurs)]
+        voyageurs = self.voyageurs
         while B:
             moved = [False for _ in range(len(voyageurs))]
             for voyageur, im in zip(voyageurs, range(len(voyageurs))):
