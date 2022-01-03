@@ -2,13 +2,12 @@
 Interface graphique pour utilser algo PRIM dans le cadre du probleme du voyageur de commerce
 """
 from tkinter import * # GUI module
-from tkinter import ttk, messagebox as msgbox # addons for GUI
 from threading import Thread # Permet de faire tourner des fonctions en meme temps (async)
 # Frames individuelles
 from mapFrame import MapFrame 
 
 __AUTHORS__ = 'Raphaël, Elisa and Grégoire'
-__VERSION__ = '1.1'
+__VERSION__ = '1.2'
 
 X = 700
 Y = 700
