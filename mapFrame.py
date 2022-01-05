@@ -143,8 +143,10 @@ class MapFrame(Frame):
         Renders the path(s) of each traveler(s), with colored line between cities and numeric order"""
         # execute the algorithm to find the path
         self.prim.execute(self.choice, int(self.scale_voyageur.get()))
+        #self.prim.execute(self.choice, int(self.scale_voyageur.get()), True) # """upgraded""" algorithm
         self.prim.upgrade()
         paths = self.prim.npaths
+        print("max len path :", self.prim.len_max)
         # add the order to the cities
         draw = ImageDraw.Draw(self.mapImg) # drawing object
         # add the lines between each city and the order numbers

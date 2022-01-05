@@ -53,7 +53,6 @@ class Voyageur:
         self.nstart = nstart
         self._A = [nstart]
         self.pred = []
-        self.position = nstart
         self.tree_mat = [[0 for _ in range(len(self.master.matrix))] for __ in range(len(self.master.matrix))]
 
     def add_node(self, i: int, j: int, weight=1) -> None:
@@ -71,7 +70,6 @@ class Voyageur:
         -----------
             - None
         """
-        self.position = j
         self._A.append(j)
         self.pred.append(i)
         self.tree_mat[i][j] = weight
@@ -107,7 +105,11 @@ class Voyageur:
     
     @property
     def len_path(self):
-        return sum([sum(line) for line in self.tree_mat])
+        return sum([sum(line) for line in self.tree_mat]) // 2
+
+    @property
+    def position(self):
+        return self._A[-1]
 
 class PRIM:
     """
@@ -128,15 +130,23 @@ class PRIM:
         self._paths = []
         self.voyageurs = []
     
-    def execute(self, nstart: int, nvoyageurs=1):
+    def execute(self, nstart: int, nvoyageurs=1, second_pass=False):
         """
         Executes the prim algorithm for the specified starting point (its index)
 
-        PARAMETER :
+        PARAMETERS :
         -----------
             - nstart : int
                 - index of the starting node in self.villes
-        
+            
+            - nvoyageurs : int
+                - number of concurrent travelers to travel the cities
+                - default = 1
+
+            - second_pass : bool
+                - at each iteration, the func will do a modified 2nd pass to upgrade the result, by moving travelers who didn't at the 1st pass
+                - default = False
+
         RETURN :
         -----------
             - None
@@ -166,6 +176,26 @@ class PRIM:
                     moved[im] = True
                     voyageur.add_node(i_min, j_min, min_weight)
                     B.remove(j_min)
+            # second pass, used to make all travelers move as much as possible (and logical) (doesn't work as intended)
+            if second_pass: 
+                for voyageur, im in [(v, im) for v, im in zip(voyageurs, range(len(voyageurs))) if not moved[im]]:
+                    if not B:
+                        break
+                    min_weight = max([max(line) for line in G]) + 1
+                    changed = False
+                    for i in voyageur._A:
+                        for j in B:
+                            if G[i][j] and G[i][j] < min_weight:
+                                if (voyageur.len_path < .5 * self.total_len / nvoyageurs  
+                                    and G[voyageur.position][j] < 2 * min([G[v.position][j] for v in voyageurs])): # if path len is below half of the average path len 
+                                    min_weight = G[i][j]
+                                    j_min, i_min = j, i
+                                    changed = True
+                    if changed:
+                        moved[im] = True
+                        voyageur.add_node(i_min, j_min, min_weight)
+                        B.remove(j_min)
+                
     
     def upgrade(self):
         """Upgrades the result of .execute() (the paths)"""
@@ -203,13 +233,20 @@ class PRIM:
 if __name__ == '__main__':
     p = PRIM()
 
-    p.execute(0, nvoyageurs=2)
+    diff = 0
+    for i in range(1, len(VILLES)): # old algo (no 2nd pass)
+        p.execute(VILLES.index("paris"), i)
+        print(i, ":", p.len_max)
+        diff += p.len_max
+    
+    print("sum no 2nd pass :", diff)
 
-    print(p.npaths)
-
-    p.upgrade()
-
-    print(p.npaths)
+    for i in range(1, len(VILLES)): # 2nd pass
+        p.execute(VILLES.index("paris"), i, True)
+        print(i, ":", p.len_max)
+        diff -= p.len_max
+    
+    print('difference (distance gain) :', diff)
 
 
 
